@@ -4,13 +4,15 @@ KGSL_MODULE_ROOT = $(dir $(CUR_MKFILE))
 endif
 
 KBUILD_OPTIONS += CONFIG_QCOM_KGSL=m
-KBUILD_OPTIONS += BOARD_PLATFORM=pineapple
+KBUILD_OPTIONS += BOARD_PLATFORM=$(TARGET_BOARD_PLATFORM)
 KBUILD_OPTIONS += $(KGSL_SELECT)
 KBUILD_OPTIONS += MODNAME=msm_kgsl
 KBUILD_OPTIONS += KGSL_PATH=$(KGSL_MODULE_ROOT)
 
+ifeq ($(BOARD_PLATFORM), pineapple)
 KBUILD_EXTRA_SYMBOLS := \
     $(OUT_DIR)/../sm8650-modules/qcom/opensource/mm-drivers/hw_fence/Module.symvers
+endif
 
 all: modules
 
