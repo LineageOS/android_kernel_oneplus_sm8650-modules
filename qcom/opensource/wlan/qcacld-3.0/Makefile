@@ -20,7 +20,6 @@ KBUILD_OPTIONS += \
     WLAN_FW_API=$(KERNEL_SRC)/$(M)/../fw-api \
     CONFIG_IPA_OUT_OF_TREE=y \
     CONFIG_QCA_CLD_WLAN=m \
-    CONFIG_CNSS_KIWI_V2=y \
     CONFIG_CNSS_OUT_OF_TREE=y \
     CONFIG_CNSS2=m \
     CONFIG_ICNSS2=m \
@@ -33,12 +32,26 @@ KBUILD_OPTIONS += \
     CONFIG_CNSS_UTILS=m \
     CONFIG_CNSS_HW_SECURE_DISABLE=y \
     CONFIG_BUS_AUTO_SUSPEND=y \
+    BOARD_PLATFORM=$(TARGET_BOARD_PLATFORM) \
+    WLAN_CTRL_NAME=wlan
+
+# WLAN module configuration based on platform
+ifeq ($(TARGET_BOARD_PLATFORM),pineapple)
+KBUILD_OPTIONS += \
     WLAN_PROFILE=kiwi_v2 \
     DYNAMIC_SINGLE_CHIP=kiwi_v2 \
     MODNAME=qca_cld3_kiwi_v2 \
     DEVNAME=kiwi_v2 \
-    BOARD_PLATFORM=pineapple \
-    WLAN_CTRL_NAME=wlan
+    CONFIG_CNSS_KIWI_V2=y
+else ifeq ($(TARGET_BOARD_PLATFORM),volcano)
+KBUILD_OPTIONS += \
+    WLAN_PROFILE=qca6750 \
+    DYNAMIC_SINGLE_CHIP=qca6750 \
+    MODNAME=qca_cld3_qca6750 \
+    DEVNAME=qca6750 \
+    CONFIG_CNSS_QCA6750=y
+endif
+
 endif
 
 KBUILD_EXTRA_SYMBOLS := \
