@@ -34,6 +34,24 @@
       "parentUuid": "3cc29a28_3ef81308",
       "revId": "2aef155d1f183be12dc4ce05a92716e6dfc86f24",
       "serverId": "1ec6b3db-b2c1-4fa4-84a2-4c7efe89ba71"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "3d715b2d_0c992cee",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 25732
+      },
+      "writtenOn": "2025-04-04T17:31:36Z",
+      "side": 1,
+      "message": "Just pointing out there\u0027s already a change ID related to the same change, might be cool to use it for all qcom kernels",
+      "parentUuid": "29cc5248_4006293f",
+      "revId": "2aef155d1f183be12dc4ce05a92716e6dfc86f24",
+      "serverId": "1ec6b3db-b2c1-4fa4-84a2-4c7efe89ba71"
     }
   ]
 }
