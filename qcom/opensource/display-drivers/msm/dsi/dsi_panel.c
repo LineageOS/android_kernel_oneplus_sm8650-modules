@@ -80,6 +80,8 @@
 
 #ifdef OPLUS_FEATURE_DISPLAY
 static bool g_oplus_forced_power_down = false;
+bool caihong_panel_flag = false;
+EXPORT_SYMBOL(caihong_panel_flag);
 #endif /* OPLUS_FEATURE_DISPLAY */
 
 extern bool g_gamma_regs_read_done;
@@ -1074,7 +1076,9 @@ int dsi_panel_set_backlight(struct dsi_panel *panel, u32 bl_lvl)
 		return 0;
 
 #if IS_ENABLED(CONFIG_OPLUS_POWER_NOTIFIER)
-	if (g_oplus_forced_power_down) {
+	if (!strcmp(panel->name, "Dual dsi csot nt36532 video mode panel with DSC")
+			|| !strcmp(panel->name, "Dual dsi nt36523w video mode panel with DSC")
+            || g_oplus_forced_power_down) {
 		if (panel->pon_status == OPLUS_PON_KPDPWR_RESIN_BARK) {
 			DSI_ERR("%s: %d: pon_status is OPLUS_PON_KPDPWR_RESIN_BARK, return\n", __func__, __LINE__);
 			return 0;
@@ -4781,9 +4785,16 @@ struct dsi_panel *dsi_panel_get(struct device *parent,
 			panel->name = "AA584 P 7 A0001 dsc cmd mode panel";
 		}
 	}
+    if (is_project(23926) || is_project(23927) || is_project(23976) || is_project(23978)) {
+		if (!strcmp(panel->name, "Dual dsi csot nt36532 video mode panel with DSC")
+			|| !strcmp(panel->name, "Dual dsi nt36523w video mode panel with DSC")) {
+			DSI_INFO("caihong_panel_flag: true\n");
+			caihong_panel_flag = true;
+        }
+    }
 #if IS_ENABLED(CONFIG_OPLUS_POWER_NOTIFIER)
-	if (g_oplus_forced_power_down) {
-		DSI_INFO("dongfeng_panel_flag: true\n");
+	if (caihong_panel_flag || g_oplus_forced_power_down) {
+		DSI_INFO("caihong/dongfeng_panel_flag: true\n");
 		panel->oplus_power_notify_client.notifier_call = oplus_power_notifier_callback;
 		rc = oplus_power_notifier_register_client(&panel->oplus_power_notify_client);
 		if (rc) {
@@ -6243,6 +6254,43 @@ int dsi_panel_enable(struct dsi_panel *panel)
 			goto error;
 		}
 	}
+
+#ifdef OPLUS_FEATURE_DISPLAY
+	if (!strcmp(panel->name, "Dual dsi csot nt36532 video mode panel with DSC")
+		|| !strcmp(panel->name, "Dual dsi nt36523w video mode panel with DSC")) {
+		switch (panel->cur_mode->timing.refresh_rate) {
+			case 30:
+				rc = dsi_panel_tx_cmd_set(panel, DSI_CMD_SET_FPS_SWITCH_30, false);
+				break;
+			case 48:
+				rc = dsi_panel_tx_cmd_set(panel, DSI_CMD_SET_FPS_SWITCH_48, false);
+				break;
+			case 50:
+				rc = dsi_panel_tx_cmd_set(panel, DSI_CMD_SET_FPS_SWITCH_50, false);
+				break;
+			case 60:
+				rc = dsi_panel_tx_cmd_set(panel, DSI_CMD_SET_FPS_SWITCH_60, false);
+				break;
+			case 90:
+				rc = dsi_panel_tx_cmd_set(panel, DSI_CMD_SET_FPS_SWITCH_90, false);
+				break;
+			case 120:
+				rc = dsi_panel_tx_cmd_set(panel, DSI_CMD_SET_FPS_SWITCH_120, false);
+				break;
+			case 144:
+				rc = dsi_panel_tx_cmd_set(panel, DSI_CMD_SET_FPS_SWITCH_144, false);
+				break;
+			default:
+				DSI_ERR("[%s] not support to send switch refresh_rate=%d cmds, rc=%d\n",
+					panel->name, panel->cur_mode->timing.refresh_rate, rc);
+		}
+		if (rc) {
+			DSI_ERR("[%s] failed to send switch refresh_rate=%d cmds, rc=%d\n",
+				panel->name, panel->cur_mode->timing.refresh_rate, rc);
+		}
+	}
+#endif /* OPLUS_FEATURE_DISPLAY */
+
 	panel->panel_initialized = true;
 
 #ifdef OPLUS_FEATURE_DISPLAY_ADFR
