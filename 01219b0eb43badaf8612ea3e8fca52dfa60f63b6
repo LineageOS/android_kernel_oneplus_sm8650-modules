@@ -16,6 +16,29 @@
       "message": "Needs more cleanup",
       "revId": "01219b0eb43badaf8612ea3e8fca52dfa60f63b6",
       "serverId": "1ec6b3db-b2c1-4fa4-84a2-4c7efe89ba71"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "ca4f2d7d_6be3753d",
+        "filename": "qcom/opensource/display-drivers/msm/dsi/dsi_panel.c",
+        "patchSetId": 5
+      },
+      "lineNbr": 4724,
+      "author": {
+        "id": 13648
+      },
+      "writtenOn": "2025-10-01T07:46:56Z",
+      "side": 1,
+      "message": "It sucks using this here. How about having runtime checks for prjname instead?",
+      "range": {
+        "startLine": 4724,
+        "startChar": 7,
+        "endLine": 4724,
+        "endChar": 25
+      },
+      "revId": "01219b0eb43badaf8612ea3e8fca52dfa60f63b6",
+      "serverId": "1ec6b3db-b2c1-4fa4-84a2-4c7efe89ba71"
     }
   ]
 }
