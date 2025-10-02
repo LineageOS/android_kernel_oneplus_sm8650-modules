@@ -39,6 +39,30 @@
       },
       "revId": "01219b0eb43badaf8612ea3e8fca52dfa60f63b6",
       "serverId": "1ec6b3db-b2c1-4fa4-84a2-4c7efe89ba71"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "c8d9c6d2_5a7081ce",
+        "filename": "qcom/opensource/display-drivers/msm/dsi/dsi_panel.c",
+        "patchSetId": 5
+      },
+      "lineNbr": 4724,
+      "author": {
+        "id": 32811
+      },
+      "writtenOn": "2025-10-02T10:52:11Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ca4f2d7d_6be3753d",
+      "range": {
+        "startLine": 4724,
+        "startChar": 7,
+        "endLine": 4724,
+        "endChar": 25
+      },
+      "revId": "01219b0eb43badaf8612ea3e8fca52dfa60f63b6",
+      "serverId": "1ec6b3db-b2c1-4fa4-84a2-4c7efe89ba71"
     }
   ]
 }
