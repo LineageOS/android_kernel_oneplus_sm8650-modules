@@ -16,6 +16,23 @@
       "message": "Holding for 2-3 days",
       "revId": "f496d6ac69f698e3819f15c9957bf1fb1435fadd",
       "serverId": "1ec6b3db-b2c1-4fa4-84a2-4c7efe89ba71"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "f3004f8c_99c706f8",
+        "filename": "qcom/opensource/display-drivers/msm/leds_ktz8866.c",
+        "patchSetId": 7
+      },
+      "lineNbr": 448,
+      "author": {
+        "id": 13648
+      },
+      "writtenOn": "2025-10-04T12:46:09Z",
+      "side": 1,
+      "message": "Unnecessary edit",
+      "revId": "f496d6ac69f698e3819f15c9957bf1fb1435fadd",
+      "serverId": "1ec6b3db-b2c1-4fa4-84a2-4c7efe89ba71"
     }
   ]
 }
