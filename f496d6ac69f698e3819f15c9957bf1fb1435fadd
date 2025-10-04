@@ -33,6 +33,24 @@
       "message": "Unnecessary edit",
       "revId": "f496d6ac69f698e3819f15c9957bf1fb1435fadd",
       "serverId": "1ec6b3db-b2c1-4fa4-84a2-4c7efe89ba71"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "e5b3d396_05338d14",
+        "filename": "qcom/opensource/display-drivers/msm/leds_ktz8866.c",
+        "patchSetId": 7
+      },
+      "lineNbr": 448,
+      "author": {
+        "id": 32811
+      },
+      "writtenOn": "2025-10-04T14:53:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f3004f8c_99c706f8",
+      "revId": "f496d6ac69f698e3819f15c9957bf1fb1435fadd",
+      "serverId": "1ec6b3db-b2c1-4fa4-84a2-4c7efe89ba71"
     }
   ]
 }
