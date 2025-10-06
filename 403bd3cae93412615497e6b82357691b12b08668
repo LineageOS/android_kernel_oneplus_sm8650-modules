@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "5291a499_517aebdc",
+        "filename": "qcom/opensource/display-drivers/msm/leds_ktz8866.h",
+        "patchSetId": 9
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 35825
+      },
+      "writtenOn": "2025-10-06T09:33:15Z",
+      "side": 1,
+      "message": "Is this really needed? Only caihong source seems to have it different.",
+      "range": {
+        "startLine": 14,
+        "startChar": 0,
+        "endLine": 22,
+        "endChar": 120
+      },
+      "revId": "403bd3cae93412615497e6b82357691b12b08668",
+      "serverId": "1ec6b3db-b2c1-4fa4-84a2-4c7efe89ba71"
+    }
+  ]
+}
