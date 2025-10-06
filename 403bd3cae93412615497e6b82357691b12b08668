@@ -22,6 +22,30 @@
       },
       "revId": "403bd3cae93412615497e6b82357691b12b08668",
       "serverId": "1ec6b3db-b2c1-4fa4-84a2-4c7efe89ba71"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "f669c64b_95afc68f",
+        "filename": "qcom/opensource/display-drivers/msm/leds_ktz8866.h",
+        "patchSetId": 9
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 32811
+      },
+      "writtenOn": "2025-10-06T10:11:22Z",
+      "side": 1,
+      "message": "hence its needed, display driver for caihong isnt commonised by oplus",
+      "parentUuid": "5291a499_517aebdc",
+      "range": {
+        "startLine": 14,
+        "startChar": 0,
+        "endLine": 22,
+        "endChar": 120
+      },
+      "revId": "403bd3cae93412615497e6b82357691b12b08668",
+      "serverId": "1ec6b3db-b2c1-4fa4-84a2-4c7efe89ba71"
     }
   ]
 }
