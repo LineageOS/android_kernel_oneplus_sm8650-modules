@@ -46,6 +46,30 @@
       },
       "revId": "403bd3cae93412615497e6b82357691b12b08668",
       "serverId": "1ec6b3db-b2c1-4fa4-84a2-4c7efe89ba71"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "bd759504_da6cde25",
+        "filename": "qcom/opensource/display-drivers/msm/leds_ktz8866.h",
+        "patchSetId": 9
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 35825
+      },
+      "writtenOn": "2025-10-07T11:53:48Z",
+      "side": 1,
+      "message": "Doesn\u0027t seem to cause any issue on avalon.",
+      "parentUuid": "f669c64b_95afc68f",
+      "range": {
+        "startLine": 14,
+        "startChar": 0,
+        "endLine": 22,
+        "endChar": 120
+      },
+      "revId": "403bd3cae93412615497e6b82357691b12b08668",
+      "serverId": "1ec6b3db-b2c1-4fa4-84a2-4c7efe89ba71"
     }
   ]
 }
