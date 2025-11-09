@@ -156,6 +156,12 @@ struct dsi_dfps_capabilities {
 	u32 *dfps_list;
 	u32 dfps_list_len;
 	bool dfps_support;
+	u32 *dfps_hfp_list;
+	u32 *dfps_hbp_list;
+	u32 *dfps_hpw_list;
+	u32 *dfps_vbp_list;
+	u32 *dfps_vfp_list;
+	u32 *dfps_vpw_list;
 };
 
 struct dsi_qsync_capabilities {
@@ -429,6 +435,7 @@ struct dsi_panel {
 	bool panel_ack_disabled;
 
 	struct mutex panel_lock;
+	bool peripheral_flush_ongoing;
 	struct drm_panel drm_panel;
 	struct mipi_dsi_host *host;
 	struct device *parent;
@@ -663,4 +670,7 @@ void dsi_panel_dealloc_cmd_packets(struct dsi_panel_cmd_set *set);
 int dsi_panel_tx_cmd_set(struct dsi_panel *panel,
 		enum dsi_cmd_set_type type, bool do_peripheral_flush);
 #endif /* OPLUS_FEATURE_DISPLAY */
+
+int dsi_panel_send_cmd(struct dsi_panel *panel,
+		struct msm_display_conn_params *params, enum dsi_cmd_set_type type);
 #endif /* _DSI_PANEL_H_ */
