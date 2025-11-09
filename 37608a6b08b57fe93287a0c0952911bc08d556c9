@@ -3,6 +3,23 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "0df82765_b4209451",
+        "filename": "qcom/opensource/display-drivers/msm/dsi/dsi_panel.c",
+        "patchSetId": 2
+      },
+      "lineNbr": 6356,
+      "author": {
+        "id": 32811
+      },
+      "writtenOn": "2025-11-09T08:42:42Z",
+      "side": 1,
+      "message": "same",
+      "revId": "37608a6b08b57fe93287a0c0952911bc08d556c9",
+      "serverId": "1ec6b3db-b2c1-4fa4-84a2-4c7efe89ba71"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "dc8d0dfc_7777f9ed",
         "filename": "qcom/opensource/display-drivers/msm/sde/sde_connector.c",
         "patchSetId": 2
