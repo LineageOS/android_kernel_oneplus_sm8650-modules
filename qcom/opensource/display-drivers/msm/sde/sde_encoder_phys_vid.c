@@ -238,7 +238,7 @@ static u32 programmable_fetch_get_num_lines(
 	if (start_of_frame_lines >= needed_prefill_lines) {
 		SDE_DEBUG_VIDENC(vid_enc,
 				"prog fetch always enabled case\n");
-		actual_vfp_lines = (test_bit(SDE_FEATURE_DELAY_PRG_FETCH, m->features)) ? 2 : 1;
+		actual_vfp_lines = (test_bit(SDE_FEATURE_DELAY_PRG_FETCH, m->features)) ? 25 : 1;
 	} else if (v_front_porch < needed_vfp_lines) {
 		/* Warn fetch needed, but not enough porch in panel config */
 		pr_warn_once

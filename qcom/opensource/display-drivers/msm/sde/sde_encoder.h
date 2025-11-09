@@ -874,6 +874,12 @@ void sde_encoder_misr_sign_event_notify(struct drm_encoder *drm_enc);
 int sde_encoder_handle_dma_fence_out_of_order(struct drm_encoder *drm_enc);
 
 /**
+ * sde_encoder_update_periph_flush - update peripheral flush event
+ * @drm_enc: pointer to drm encoder
+ */
+int sde_encoder_update_periph_flush(struct drm_encoder *drm_enc);
+
+/**
  * sde_encoder_register_misr_event - register or deregister MISR event
  * @drm_enc: pointer to drm encoder
  * @val: indicates register or deregister
