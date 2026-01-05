@@ -65,6 +65,8 @@
 #define to_sde_encoder_phys_cmd(x)  container_of(x, struct sde_encoder_phys_cmd, base)
 
 /* -------------------- parameters -------------------- */
+/* lexus panel flag */
+bool lexus_panel_flag = false;
 /* log level config */
 unsigned int oplus_ofp_log_level = OPLUS_OFP_LOG_LEVEL_DEBUG;
 EXPORT_SYMBOL(oplus_ofp_log_level);
@@ -313,6 +315,11 @@ int oplus_ofp_init(void *dsi_panel)
 			p_oplus_ofp_params->need_to_update_lhbm_pressed_icon_gamma_nt37707 =
 			utils->read_bool(utils->data, "oplus,ofp-need-to-update-lhbm-pressed-icon-gamma-nt37707");
 			OFP_INFO("need_to_update_lhbm_pressed_icon_gamma_nt37707:%d\n", p_oplus_ofp_params->need_to_update_lhbm_pressed_icon_gamma_nt37707);
+
+			if (p_oplus_ofp_params->need_to_update_lhbm_pressed_icon_gamma_nt37707) {
+				lexus_panel_flag = true;
+				OFP_INFO("lexus display: %d\n", lexus_panel_flag);
+			}
 
 			/* indicates whether lhbm vdc params needs to be updated or not */
 			p_oplus_ofp_params->need_to_update_lhbm_vdc = utils->read_bool(utils->data, "oplus,ofp-need-to-update-lhbm-vdc");
@@ -740,6 +747,7 @@ int oplus_ofp_property_update(void *sde_connector, void *sde_connector_state, in
 	struct sde_connector *c_conn = sde_connector;
 	struct sde_connector_state *c_state = sde_connector_state;
 	struct oplus_ofp_params *p_oplus_ofp_params = oplus_ofp_get_params(oplus_ofp_display_id);
+	int rc = 0;
 
 	OFP_DEBUG("start\n");
 
@@ -758,6 +766,13 @@ int oplus_ofp_property_update(void *sde_connector, void *sde_connector_state, in
 	switch (prop_id) {
 	case CONNECTOR_PROP_HBM_ENABLE:
 		if (prop_val != p_oplus_ofp_params->hbm_enable) {
+			if (!prop_val && lexus_panel_flag) {
+				OFP_INFO("HBM:%lu, notify fppress up\n", prop_val);
+				uint32_t fp_press = 0;
+				rc = oplus_ofp_notify_fp_press(&fp_press);
+				if (rc)
+					OFP_ERR("failed to notify fp up event, rc=%d\n", rc);
+			}
 			OFP_INFO("HBM_ENABLE:%lu,dim:%lu,fingerpress:%lu,icon:%lu,aod:%lu\n", prop_val, (prop_val & OPLUS_OFP_PROPERTY_DIM_LAYER),
 				(prop_val & OPLUS_OFP_PROPERTY_FINGERPRESS_LAYER), (prop_val & OPLUS_OFP_PROPERTY_ICON_LAYER),
 					(prop_val & OPLUS_OFP_PROPERTY_AOD_LAYER));
@@ -4290,6 +4305,7 @@ int oplus_ofp_touchpanel_event_notifier_call(struct notifier_block *nb, unsigned
 	struct dsi_display *display = get_main_display();
 	struct sde_connector *sde_conn;
 	struct drm_event event;
+	int rc = 0;
 
 	if (!display || !display->panel) {
 		OFP_ERR("display is null\n");
@@ -4312,6 +4328,11 @@ int oplus_ofp_touchpanel_event_notifier_call(struct notifier_block *nb, unsigned
 
 			if (tp_event->touch_state == 1) {
 				OFP_INFO("tp touchdown\n");
+				if (lexus_panel_flag) {
+					rc = oplus_ofp_notify_fp_press(&tp_event->touch_state);
+					if (rc)
+						OFP_ERR("failed to notify fp down event, rc=%d\n", rc);
+				}
 				if (oplus_ofp_video_mode_30hz_aod_is_enabled() && oplus_ofp_get_aod_state()) {
 					event.type = DRM_EVENT_TP_TOUCHDOWN;
 					event.length = sizeof(bool);
