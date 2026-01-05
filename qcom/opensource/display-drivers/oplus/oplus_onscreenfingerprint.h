@@ -101,6 +101,7 @@ struct oplus_ofp_params {
 	bool need_to_update_lhbm_vdc;	                    /* indicates whether lhbm vdc params needs to be updated or not */
 	bool need_to_update_lhbm_pressed_icon_gamma;	/* indicates whether lhbm pressed icon gamma needs to be read and updated or not */
 	bool need_to_update_lhbm_pressed_icon_gamma_nt37707;	/* indicates whether lhbm pressed icon gamma needs to be read and updated or not for NT37707 */
+	bool need_to_notify_fppress;
 	bool hbm_state;									/* indicates whether panel is hbm state or not */
 	bool panel_hbm_status;							/* indicates whether hbm cmds are taking effect in panel module or not */
 	bool fp_press;									/* indicates whether pressed icon layer is ready or not */
