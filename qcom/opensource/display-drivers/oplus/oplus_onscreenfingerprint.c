@@ -761,12 +761,16 @@ int oplus_ofp_property_update(void *sde_connector, void *sde_connector_state, in
 	switch (prop_id) {
 	case CONNECTOR_PROP_HBM_ENABLE:
 		if (prop_val != p_oplus_ofp_params->hbm_enable) {
-			if (!prop_val && p_oplus_ofp_params->need_to_update_lhbm_pressed_icon_gamma_nt37707) {
-				OFP_INFO("HBM:%lu, notify fppress up\n", prop_val);
-				uint32_t fp_press = 0;
-				if (oplus_ofp_notify_fp_press(&fp_press))
-					OFP_INFO("failed to notify fp up event");
+			if (p_oplus_ofp_params->need_to_update_lhbm_pressed_icon_gamma_nt37707
+					&& (p_oplus_ofp_params->hbm_enable & (OPLUS_OFP_PROPERTY_DIM_LAYER | OPLUS_OFP_PROPERTY_FINGERPRESS_LAYER))
+					&& !(prop_val & (OPLUS_OFP_PROPERTY_DIM_LAYER | OPLUS_OFP_PROPERTY_FINGERPRESS_LAYER))) {
+				if (p_oplus_ofp_params->fp_press) {
+					p_oplus_ofp_params->fp_press = false;
+					OFP_INFO("oplus_ofp_fp_press:%d (fod bits dropped)\n", p_oplus_ofp_params->fp_press);
+					OPLUS_OFP_TRACE_INT("oplus_ofp_fp_press", p_oplus_ofp_params->fp_press);
+				}
 			}
+
 			OFP_INFO("HBM_ENABLE:%lu,dim:%lu,fingerpress:%lu,icon:%lu,aod:%lu\n", prop_val, (prop_val & OPLUS_OFP_PROPERTY_DIM_LAYER),
 				(prop_val & OPLUS_OFP_PROPERTY_FINGERPRESS_LAYER), (prop_val & OPLUS_OFP_PROPERTY_ICON_LAYER),
 					(prop_val & OPLUS_OFP_PROPERTY_AOD_LAYER));
@@ -2515,6 +2519,7 @@ int oplus_ofp_lhbm_handle(void *dsi_display)
 {
 	int rc = 0;
 	unsigned int bl_level = 0;
+	uint64_t hbm_enable = 0;
 	struct dsi_display *display = dsi_display;
 	struct sde_connector *c_conn = NULL;
 	struct oplus_ofp_params *p_oplus_ofp_params = oplus_ofp_get_params(oplus_ofp_display_id);
@@ -2557,14 +2562,17 @@ int oplus_ofp_lhbm_handle(void *dsi_display)
 	mutex_lock(&oplus_ofp_lhbm_lock);
 
 	bl_level = display->panel->bl_config.bl_level;
+	hbm_enable = p_oplus_ofp_params->hbm_enable;
 	OFP_DEBUG("bl_level=%u\n", bl_level);
 
-	if (p_oplus_ofp_params->fp_press && bl_level) {
+	if (p_oplus_ofp_params->fp_press && bl_level
+			&& (hbm_enable & OPLUS_OFP_PROPERTY_DIM_LAYER
+				|| hbm_enable & OPLUS_OFP_PROPERTY_FINGERPRESS_LAYER)) {
 		rc = oplus_ofp_set_panel_hbm(c_conn, true);
 		if (rc) {
 			OFP_ERR("failed to set panel hbm on\n");
 		}
-	} else if (!p_oplus_ofp_params->fp_press || !bl_level) {
+	} else {
 		rc = oplus_ofp_set_panel_hbm(c_conn, false);
 		if (rc) {
 			OFP_ERR("failed to set panel hbm off\n");
@@ -3832,7 +3840,14 @@ int oplus_ofp_power_mode_handle(void *dsi_display, int power_mode)
 							OFP_ERR("[%s] failed to send DSI_CMD_HBM_OFF cmds, rc=%d\n", display->name, rc);
 						}
 					}
+					oplus_ofp_set_hbm_state(false);
 				}
+			}
+
+			if (p_oplus_ofp_params->fp_press) {
+				p_oplus_ofp_params->fp_press = false;
+				OFP_INFO("oplus_ofp_fp_press:%d\n", p_oplus_ofp_params->fp_press);
+				OPLUS_OFP_TRACE_INT("oplus_ofp_fp_press", p_oplus_ofp_params->fp_press);
 			}
 
 			/* reset aod unlocking flag when fingerprint unlocking failed */
@@ -3936,6 +3951,11 @@ int oplus_ofp_power_mode_handle(void *dsi_display, int power_mode)
 			if (rc) {
 				OFP_ERR("[%s] failed to handle aod off, rc=%d\n", display->name, rc);
 			}
+		}
+		if (p_oplus_ofp_params->fp_press) {
+			p_oplus_ofp_params->fp_press = false;
+			OFP_INFO("oplus_ofp_fp_press:%d\n", p_oplus_ofp_params->fp_press);
+			OPLUS_OFP_TRACE_INT("oplus_ofp_fp_press", p_oplus_ofp_params->fp_press);
 		}
 		break;
 
@@ -4350,6 +4370,12 @@ int oplus_ofp_touchpanel_event_notifier_call(struct notifier_block *nb, unsigned
 				} else {
 					/* send aod off cmds in doze mode to speed up fingerprint unlocking */
 					oplus_ofp_aod_off_set();
+				}
+			} else if (tp_event->touch_state == 0) {
+				OFP_INFO("tp touchup\n");
+				if (p_oplus_ofp_params->need_to_update_lhbm_pressed_icon_gamma_nt37707) {
+					if (oplus_ofp_notify_fp_press(&tp_event->touch_state))
+						OFP_INFO("failed to notify fp up event");
 				}
 			}
 		}
