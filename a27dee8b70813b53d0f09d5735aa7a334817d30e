@@ -16,6 +16,24 @@
       "message": "Said issue still happens.",
       "revId": "a27dee8b70813b53d0f09d5735aa7a334817d30e",
       "serverId": "1ec6b3db-b2c1-4fa4-84a2-4c7efe89ba71"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "c06da3bc_db069c10",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 35436
+      },
+      "writtenOn": "2026-03-11T12:08:38Z",
+      "side": 1,
+      "message": "?",
+      "parentUuid": "33a41b43_30bff58b",
+      "revId": "a27dee8b70813b53d0f09d5735aa7a334817d30e",
+      "serverId": "1ec6b3db-b2c1-4fa4-84a2-4c7efe89ba71"
     }
   ]
 }
