@@ -6861,6 +6861,17 @@ int dsi_panel_pre_disable(struct dsi_panel *panel)
 
 	mutex_lock(&panel->panel_lock);
 
+#ifdef CAIHONG_DISPLAY_DRIVER
+	if (panel->cur_mode && panel->cur_mode->timing.refresh_rate == 144 &&
+		(!strcmp(panel->name, "Dual dsi csot nt36532 video mode panel with DSC")
+		|| !strcmp(panel->name, "Dual dsi nt36523w video mode panel with DSC"))) {
+		rc = dsi_panel_tx_cmd_set(panel, DSI_CMD_SET_FPS_SWITCH_120, false);
+		if (rc)
+			DSI_ERR("[%s] failed to send fps switch 120 cmds, rc=%d\n",
+				panel->name, rc);
+	}
+#endif /* CAIHONG_DISPLAY_DRIVER */
+
 	if (gpio_is_valid(panel->bl_config.en_gpio))
 		gpio_set_value_cansleep(panel->bl_config.en_gpio, 0);
 
