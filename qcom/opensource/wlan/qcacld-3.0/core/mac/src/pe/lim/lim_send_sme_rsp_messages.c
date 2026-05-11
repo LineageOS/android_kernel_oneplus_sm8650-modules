@@ -2439,6 +2439,7 @@ void lim_handle_sta_csa_param(struct mac_context *mac_ctx,
 		goto send_event;
 
 	lim_flush_bssid(mac_ctx, session_entry->bssId);
+	session_entry->cal_tpc_post_csa = true;
 
 #ifdef FEATURE_WLAN_DIAG_SUPPORT
 	lim_diag_event_report(mac_ctx,

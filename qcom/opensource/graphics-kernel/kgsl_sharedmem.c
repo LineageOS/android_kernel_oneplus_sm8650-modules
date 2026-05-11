@@ -1176,18 +1176,22 @@ static void _kgsl_free_pages(struct kgsl_memdesc *memdesc)
 	WARN(!list_empty(&memdesc->shmem_page_list),
 	     "KGSL shmem page list is not empty\n");
 
-	for (i = 0; i < memdesc->page_count; i++)
-		if (memdesc->pages[i])
-			put_page(memdesc->pages[i]);
+	for (i = 0; i < memdesc->page_count;) {
+		int n;
+
+		if (!memdesc->pages[i]) {
+			i++;
+			continue;
+		}
+
+		n = 1 << compound_order(memdesc->pages[i]);
+		put_page(memdesc->pages[i]);
+
+		i += n;
+	}
 
 	SHMEM_I(memdesc->shmem_filp->f_mapping->host)->android_vendor_data1 = 0;
 	fput(memdesc->shmem_filp);
-}
-
-/* If CONFIG_QCOM_KGSL_USE_SHMEM is defined we don't use compound pages */
-static u32 kgsl_get_page_order(struct page *page)
-{
-	return 0;
 }
 #else
 void kgsl_register_shmem_callback(void) { }
@@ -1216,11 +1220,6 @@ static void kgsl_free_page(struct page *p)
 static void _kgsl_free_pages(struct kgsl_memdesc *memdesc)
 {
 	kgsl_pool_free_pages(memdesc->pages, memdesc->page_count);
-}
-
-static u32 kgsl_get_page_order(struct page *page)
-{
-	return compound_order(page);
 }
 #endif
 
@@ -1325,7 +1324,7 @@ static int _kgsl_alloc_pages(struct kgsl_memdesc *memdesc,
 			}
 
 			for (i = 0; i < count; ) {
-				int n = 1 << kgsl_get_page_order(local[i]);
+				int n = 1 << compound_order(local[i]);
 
 				kgsl_free_page(local[i]);
 				i += n;
