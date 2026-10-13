@@ -58,3 +58,11 @@ config SLATE_MODULE_ENABLED
 	help
 	  Enable slate compilation.
 	  This config enables slate code for compilation.
+
+config CNSS2_SSR_DRIVER_DUMP
+	bool "Enable WLAN HOST SSR dump collection"
+	depends on ICNSS2
+	help
+	  If enabled, ICNSS platform driver modules would collect host ssr dump
+	  from the WLAN HOST driver and sends to dump collection framework for
+	  creating host dump elf file.

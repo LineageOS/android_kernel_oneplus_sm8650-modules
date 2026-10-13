@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
 /*
  * Copyright (c) 2021, The Linux Foundation. All rights reserved.
- * Copyright (c) 2022-2024, Qualcomm Innovation Center, Inc. All rights reserved.
+ * Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
  */
 
 #include <dt-bindings/soc/qcom,ipcc.h>
@@ -3274,7 +3274,7 @@ static void move_detached_context_hardware_fences(struct adreno_device *adreno_d
 	struct adreno_hw_fence_entry *entry, *tmp;
 	struct gen7_hwsched_hfi *hfi = to_gen7_hwsched_hfi(adreno_dev);
 
-	/* We don't need the drawctxt lock here because this context has already been detached */
+	spin_lock(&drawctxt->lock);
 	list_for_each_entry_safe(entry, tmp, &drawctxt->hw_fence_inflight_list, node) {
 		struct gmu_context_queue_header *hdr =  drawctxt->gmu_context_queue.hostptr;
 
@@ -3286,6 +3286,8 @@ static void move_detached_context_hardware_fences(struct adreno_device *adreno_d
 
 		gen7_remove_hw_fence_entry(adreno_dev, entry);
 	}
+
+	spin_unlock(&drawctxt->lock);
 
 	/* Also grab all the hardware fences which were never sent to GMU */
 	list_for_each_entry_safe(entry, tmp, &drawctxt->hw_fence_list, node) {
@@ -3308,20 +3310,27 @@ static int check_detached_context_hardware_fences(struct adreno_device *adreno_d
 	struct adreno_hw_fence_entry *entry, *tmp;
 	struct gen7_gmu_device *gmu = to_gen7_gmu(adreno_dev);
 	int ret = 0;
+	u32 id, ts, fence_ts;
 
-	/* We don't need the drawctxt lock because this context has been detached */
+	spin_lock(&drawctxt->lock);
 	list_for_each_entry_safe(entry, tmp, &drawctxt->hw_fence_inflight_list, node) {
 		struct gmu_context_queue_header *hdr =  drawctxt->gmu_context_queue.hostptr;
 
 		if ((timestamp_cmp((u32)entry->cmd.ts, hdr->out_fence_ts) > 0)) {
+			id = drawctxt->base.id;
+			ts = (u32)entry->cmd.ts;
+			fence_ts = hdr->out_fence_ts;
+
+			spin_unlock(&drawctxt->lock);
 			dev_err(&gmu->pdev->dev,
 				"detached ctx:%d has unsignaled fence ts:%d retired:%d\n",
-				drawctxt->base.id, (u32)entry->cmd.ts, hdr->out_fence_ts);
+				id, ts, fence_ts);
 			ret = -EINVAL;
 			goto fault;
 		}
 		gen7_remove_hw_fence_entry(adreno_dev, entry);
 	}
+	spin_unlock(&drawctxt->lock);
 
 	/* Send hardware fences (to TxQueue) that were not dispatched to GMU */
 	list_for_each_entry_safe(entry, tmp, &drawctxt->hw_fence_list, node) {

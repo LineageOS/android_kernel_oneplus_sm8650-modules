@@ -1,13 +1,17 @@
 // SPDX-License-Identifier: GPL-2.0-only
 /*
- * Copyright (c) 2023 Qualcomm Innovation Center, Inc. All rights reserved.
+  * Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
  */
 
 #include "qti-smmu-proxy-common.h"
 
+#include <linux/qcom-iommu-util.h>
 #include <linux/qti-smmu-proxy-callbacks.h>
 #include <linux/qcom-dma-mapping.h>
 #include <linux/of.h>
+#include <linux/delay.h>
+#define DELAY_MS 30
+#define GH_MSGQ_RECV_RETRY_CNT 10
 
 static void *msgq_hdl;
 
@@ -74,6 +78,96 @@ out:
 
 	return ret;
 }
+
+int smmu_proxy_switch_sid(struct device *client_dev, u32 op)
+{
+	void *buf;
+	size_t size;
+	int ret;
+	struct smmu_proxy_switch_sid_req *req;
+	struct smmu_proxy_switch_sid_resp *resp;
+	int retry_cnt;
+
+	mutex_lock(&sender_mutex);
+	buf = kzalloc(GH_MSGQ_MAX_MSG_SIZE_BYTES, GFP_KERNEL);
+	if (!buf) {
+		ret = -ENOMEM;
+		pr_err("%s: Failed to allocate memory!\n", __func__);
+		goto out;
+	}
+
+	req = buf;
+
+	req->hdr.msg_type = SMMU_PROXY_SWITCH_SID;
+	req->hdr.msg_size = sizeof(*req);
+	ret = of_property_read_u32(client_dev->of_node,
+				   "qti,smmu-proxy-cb-id",
+				   &req->cb_id);
+	if (ret) {
+		dev_err(client_dev, "%s: Err reading 'qti,smmu-proxy-cb-id' rc: %d\n",
+			__func__, ret);
+		goto free_buf;
+	}
+
+	switch (op) {
+	case SMMU_PROXY_SWITCH_OP_RELEASE_SID:
+		req->switch_dir = SID_RELEASE;
+		break;
+	case SMMU_PROXY_SWITCH_OP_ACQUIRE_SID:
+		req->switch_dir = SID_ACQUIRE;
+		break;
+	default:
+		ret = -EINVAL;
+		goto free_buf;
+	}
+
+	ret = gh_msgq_send(msgq_hdl, (void *) req, req->hdr.msg_size, 0);
+	if (ret < 0) {
+		pr_err("%s: failed to send switch message rc: %d cb_id: %d\n",
+				__func__, ret, req->cb_id);
+		goto free_buf;
+	}
+
+	/*
+	 * No need to validate size -  gh_msgq_recv() ensures that sizeof(*resp) <
+	 * GH_MSGQ_MAX_MSG_SIZE_BYTES
+	 */
+	retry_cnt = GH_MSGQ_RECV_RETRY_CNT;
+	do {
+		ret = gh_msgq_recv(msgq_hdl, buf, sizeof(*resp), &size, 0);
+		if (ret >= 0)
+			break;
+
+		if (retry_cnt == 1) {
+			pr_err_ratelimited("%s: failed to receive message rc: %d cb_id: %d\n",
+					__func__, ret, req->cb_id);
+			goto free_buf;
+		}
+		pr_err_ratelimited("%s: failed to receive message rc: %d, retry cb_id: %d\n",
+				__func__, ret, req->cb_id);
+		mdelay(DELAY_MS);
+	} while (--retry_cnt);
+
+	resp = buf;
+	if (resp->hdr.ret) {
+		ret = resp->hdr.ret;
+		pr_err("%s: Switch call failed on remote VM, rc: %d\n", __func__,
+		       resp->hdr.ret);
+	}
+
+	if (resp->hdr.msg_type != SMMU_PROXY_SWITCH_SID_RESP) {
+		pr_err("%s: received incorrect msg (type: %d) for cb_id: %d\n", __func__,
+				resp->hdr.msg_type, req->cb_id);
+	}
+
+free_buf:
+	kfree(buf);
+out:
+	mutex_unlock(&sender_mutex);
+
+	return ret;
+}
+EXPORT_SYMBOL_GPL(smmu_proxy_switch_sid);
 
 int smmu_proxy_map(struct device *client_dev, struct sg_table *proxy_iova,
 		   struct dma_buf *dmabuf)

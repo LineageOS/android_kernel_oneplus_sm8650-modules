@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
 /*
  * Copyright (c) 2020-2021, The Linux Foundation. All rights reserved.
- * Copyright (c) 2022-2024 Qualcomm Innovation Center, Inc. All rights reserved.
+ * Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
  */
 
 #ifndef _MSM_VIDC_DRIVER_H_
@@ -594,6 +594,7 @@ int msm_vidc_ts_reorder_remove_timestamp(struct msm_vidc_inst *inst, u64 timesta
 int msm_vidc_ts_reorder_get_first_timestamp(struct msm_vidc_inst *inst, u64 *timestamp);
 int msm_vidc_ts_reorder_flush(struct msm_vidc_inst *inst);
 const char *buf_name(enum msm_vidc_buffer_type type);
+const char *buf_region_name(enum msm_vidc_buffer_region region);
 bool res_is_greater_than(u32 width, u32 height,
 			 u32 ref_width, u32 ref_height);
 bool res_is_greater_than_or_equal_to(u32 width, u32 height,

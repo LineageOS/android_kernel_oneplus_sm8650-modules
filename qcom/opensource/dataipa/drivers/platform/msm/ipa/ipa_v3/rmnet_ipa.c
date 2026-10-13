@@ -2,7 +2,7 @@
 /*
  * Copyright (c) 2014-2021, The Linux Foundation. All rights reserved.
  *
- * Copyright (c) 2023-2024 Qualcomm Innovation Center, Inc. All rights reserved.
+ * CCopyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
  */
 
 /*
@@ -3728,6 +3728,7 @@ wan_ioctl_init_err:
 static int ipa3_wwan_remove(struct platform_device *pdev)
 {
 	int ret, j;
+	int ep_wan;
 
 	IPAWANINFO("rmnet_ipa started deinitialization\n");
 	mutex_lock(&rmnet_ipa3_ctx->pipe_handle_guard);
@@ -3785,8 +3786,10 @@ static int ipa3_wwan_remove(struct platform_device *pdev)
 		(ipa_get_ep_mapping(IPA_CLIENT_APPS_WAN_LOW_LAT_DATA_CONS) !=
 		IPA_EP_NOT_ALLOCATED))
 		ipa3_del_low_lat_rt_rule();
-	if (ipa_get_ep_mapping(IPA_CLIENT_APPS_WAN_CONS) !=
-		IPA_EP_NOT_ALLOCATED) {
+
+	ep_wan = ipa_get_ep_mapping(IPA_CLIENT_APPS_WAN_CONS);
+	if (ep_wan != IPA_EP_NOT_ALLOCATED &&
+		ipa3_ctx->ep[ep_wan].valid) {
 		ipa3_del_dflt_wan_rt_tables();
 		ipa3_del_a7_qmap_hdr();
 	}

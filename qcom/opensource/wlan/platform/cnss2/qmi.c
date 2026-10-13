@@ -797,8 +797,13 @@ static int cnss_get_bdf_file_name(struct cnss_plat_data *plat_priv,
 
 	switch (bdf_type) {
 	case CNSS_BDF_ELF:
+		if (plat_priv->bdfname_dt[0] != 0) {
+			snprintf(filename_tmp, filename_len,
+				plat_priv->bdfname_dt);
+			cnss_pr_dbg("filename_tmp:%s len:%d\n",
+				    filename_tmp, filename_len);
 		/* Board ID will be equal or less than 0xFF in GF mask case */
-		if (plat_priv->board_info.board_id == 0xFF) {
+		} else if (plat_priv->board_info.board_id == 0xFF) {
 #ifndef OPLUS_FEATURE_WIFI_BDF
 //Modify for: multi projects using different bdf
 			if (plat_priv->chip_info.chip_id & CHIP_ID_GF_MASK)
@@ -827,7 +832,13 @@ static int cnss_get_bdf_file_name(struct cnss_plat_data *plat_priv,
 		}
 		break;
 	case CNSS_BDF_BIN:
-		if (plat_priv->board_info.board_id == 0xFF) {
+		if (plat_priv->bdfname_dt[0] != 0) {
+			snprintf(filename_tmp, filename_len,
+				plat_priv->bdfname_dt);
+			cnss_pr_dbg("filename_tmp:%s len:%d\n",
+				    filename_tmp, filename_len);
+		/* Board ID will be equal or less than 0xFF in GF mask case */
+		} else if (plat_priv->board_info.board_id == 0xFF) {
 			if (plat_priv->chip_info.chip_id & CHIP_ID_GF_MASK)
 				snprintf(filename_tmp, filename_len,
 					 BIN_BDF_FILE_NAME_GF);
@@ -2891,19 +2902,7 @@ int cnss_wlfw_get_info_send_sync(struct cnss_plat_data *plat_priv, int type,
 		goto out;
 	}
 
-	ret = qmi_txn_wait(&txn, QMI_WLFW_TIMEOUT_JF);
-	if (ret < 0) {
-		cnss_pr_err("Failed to wait for response of get info request, err: %d\n",
-			    ret);
-		goto out;
-	}
-
-	if (resp->resp.result != QMI_RESULT_SUCCESS_V01) {
-		cnss_pr_err("Get info request failed, result: %d, err: %d\n",
-			    resp->resp.result, resp->resp.error);
-		ret = -resp->resp.result;
-		goto out;
-	}
+	qmi_txn_cancel(&txn);
 
 	kfree(req);
 	kfree(resp);

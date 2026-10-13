@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-only
 /*
- * Copyright (c) 2023 Qualcomm Innovation Center, Inc. All rights reserved.
+ * Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
  */
 
 #include <linux/kthread.h>
@@ -30,7 +30,12 @@ static DEFINE_MUTEX(buffer_state_lock);
 static DEFINE_XARRAY(buffer_state_arr);
 
 static unsigned int cb_map_counts[QTI_SMMU_PROXY_CB_IDS_LEN] = { 0 };
-struct device *cb_devices[QTI_SMMU_PROXY_CB_IDS_LEN] = { 0 };
+struct cb_dev {
+	struct device *dev;
+	struct {
+		uint32_t acquired : 1;
+	};
+} cb_devices[QTI_SMMU_PROXY_CB_IDS_LEN] = { 0 };
 
 struct task_struct *receiver_msgq_handler_thread;
 
@@ -95,13 +100,14 @@ static int iommu_unmap_and_relinquish(u32 hdl)
 
 			/* If nothing left is mapped for this CB, unprogram its SMR */
 			cb_map_counts[cb_id]--;
-			if (!cb_map_counts[cb_id]) {
-				ret = qcom_iommu_sid_switch(cb_devices[cb_id], SID_RELEASE);
+			if (!cb_map_counts[cb_id] && cb_devices[cb_id].acquired) {
+				ret = qcom_iommu_sid_switch(cb_devices[cb_id].dev, SID_RELEASE);
 				if (ret) {
 					pr_err("%s: Failed to unprogram SMR for cb_id %d rc: %d\n",
 					       __func__, cb_id, ret);
 					break;
 				}
+				cb_devices[cb_id].acquired = false;
 			}
 		}
 	}
@@ -148,6 +154,59 @@ static int process_unmap_request(struct smmu_proxy_unmap_req *req, size_t size)
 	return ret;
 }
 
+static int process_switch_sid_request(struct smmu_proxy_switch_sid_req *req, size_t size)
+{
+	struct smmu_proxy_switch_sid_resp *resp;
+	int ret = 0;
+
+	resp = kzalloc(sizeof(*resp), GFP_KERNEL);
+	if (!resp)
+		return -ENOMEM;
+
+
+	if (req->cb_id >= QTI_SMMU_PROXY_CB_IDS_LEN) {
+		ret = -ERANGE;
+		goto exit_resp;
+	}
+
+	/*
+	 * For now, we only expect sid switch for the Display CB,
+	 * but we are not disabling other CBs in case it is needed.
+	 */
+
+	mutex_lock(&buffer_state_lock);
+	if (req->switch_dir == SID_ACQUIRE && cb_devices[req->cb_id].acquired)
+		pr_info("cb_id: %d has already been acquired. Ignoring request.\n", req->cb_id);
+	else if (req->switch_dir == SID_RELEASE && !cb_devices[req->cb_id].acquired)
+		pr_info("cb_id: %d has already been released. Ignoring request.\n", req->cb_id);
+	else
+		ret = qcom_iommu_sid_switch(cb_devices[req->cb_id].dev, req->switch_dir);
+
+	if (ret)
+		pr_err("%s: Failed to switch sid request: %d for cb_id %d %s\n", __func__,
+			ret, req->cb_id, (req->switch_dir == SID_ACQUIRE) ? "ACQUIRE" : "RELEASE");
+	else
+		cb_devices[req->cb_id].acquired = (req->switch_dir == SID_ACQUIRE);
+	mutex_unlock(&buffer_state_lock);
+
+exit_resp:
+	resp->hdr.msg_type = SMMU_PROXY_SWITCH_SID_RESP;
+	resp->hdr.msg_size = sizeof(*resp);
+	resp->hdr.ret = ret;
+
+	ret = gh_msgq_send(msgq_hdl, resp, resp->hdr.msg_size, 0);
+	if (ret < 0)
+		pr_err("%s: failed to send response to switch request rc: %d\n", __func__, ret);
+	else
+		pr_info("%s: response to switch sid request: %d for cb_id %d %s\n", __func__,
+				resp->hdr.ret, req->cb_id,
+				(req->switch_dir == SID_ACQUIRE) ? "ACQUIRE" : "RELEASE");
+
+	kfree(resp);
+
+	return ret;
+}
+
 static
 inline
 struct sg_table *retrieve_and_iommu_map(struct mem_buf_retrieve_kernel_arg *retrieve_arg,
@@ -165,7 +224,7 @@ struct sg_table *retrieve_and_iommu_map(struct mem_buf_retrieve_kernel_arg *retr
 		return ERR_PTR(-EINVAL);
 	}
 
-	if (!cb_devices[cb_id]) {
+	if (!cb_devices[cb_id].dev) {
 		pr_err("%s: CB of ID %d not defined\n", __func__, cb_id);
 		return ERR_PTR(-EINVAL);
 	}
@@ -211,7 +270,7 @@ struct sg_table *retrieve_and_iommu_map(struct mem_buf_retrieve_kernel_arg *retr
 		buf_state->dmabuf = dmabuf;
 	}
 
-	attachment = dma_buf_attach(dmabuf, cb_devices[cb_id]);
+	attachment = dma_buf_attach(dmabuf, cb_devices[cb_id].dev);
 	if (IS_ERR(attachment)) {
 		ret = PTR_ERR(attachment);
 		pr_err("%s: Failed to attach rc: %d\n", __func__, ret);
@@ -235,13 +294,14 @@ struct sg_table *retrieve_and_iommu_map(struct mem_buf_retrieve_kernel_arg *retr
 	buf_state->cb_info[cb_id].attachment = attachment;
 	buf_state->cb_info[cb_id].sg_table = table;
 
-	if (!cb_map_counts[cb_id]) {
-		ret = qcom_iommu_sid_switch(cb_devices[cb_id], SID_ACQUIRE);
+	if (!cb_devices[cb_id].acquired) {
+		ret = qcom_iommu_sid_switch(cb_devices[cb_id].dev, SID_ACQUIRE);
 		if (ret) {
 			pr_err("%s: Failed to program SMRs for cb_id %d rc: %d\n", __func__,
 			       cb_id, ret);
 			goto unmap;
 		}
+		cb_devices[cb_id].acquired = true;
 	}
 	cb_map_counts[cb_id]++;
 
@@ -260,11 +320,13 @@ unlock:
 
 dec_cb_map_count:
 	cb_map_counts[cb_id]--;
-	if (!cb_map_counts[cb_id]) {
-		ret = qcom_iommu_sid_switch(cb_devices[cb_id], SID_RELEASE);
+	if (!cb_map_counts[cb_id] && cb_devices[cb_id].acquired) {
+		ret = qcom_iommu_sid_switch(cb_devices[cb_id].dev, SID_RELEASE);
 		if (ret)
 			pr_err("%s: Failed to unprogram SMR for cb_id %d rc: %d\n",
 			       __func__, cb_id, ret);
+		else
+			cb_devices[cb_id].acquired = false;
 	}
 unmap:
 	dma_buf_unmap_attachment(attachment, table, DMA_BIDIRECTIONAL);
@@ -380,6 +442,9 @@ static void smmu_proxy_process_msg(void *buf, size_t size)
 		break;
 	case SMMU_PROXY_UNMAP:
 		ret = process_unmap_request(buf, size);
+		break;
+	case SMMU_PROXY_SWITCH_SID:
+		ret = process_switch_sid_request(buf, size);
 		break;
 	default:
 		pr_err("%s: received message of unknown type: %d\n", __func__,
@@ -695,7 +760,7 @@ static int cb_probe_handler(struct device *dev)
 		return -EINVAL;
 	}
 
-	if (cb_devices[context_bank_id]) {
+	if (cb_devices[context_bank_id].dev) {
 		dev_err(dev, "Context bank %u is already populated\n", context_bank_id);
 		return -EINVAL;
 	}
@@ -719,7 +784,7 @@ static int cb_probe_handler(struct device *dev)
 	}
 
 	iommu_set_fault_handler(domain, proxy_fault_handler, NULL);
-	cb_devices[context_bank_id] = dev;
+	cb_devices[context_bank_id].dev = dev;
 
 	return 0;
 }

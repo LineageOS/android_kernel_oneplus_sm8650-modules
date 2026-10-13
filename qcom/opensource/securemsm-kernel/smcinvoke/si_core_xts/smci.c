@@ -354,11 +354,6 @@ static void marshal_in_req_cleanup(struct si_arg u[], int notify)
 
 	for (i = 0; u[i].type; i++) {
 		switch (u[i].type) {
-		case SI_AT_IB:
-		case SI_AT_OB:
-			kfree(u[i].b.addr);
-
-			break;
 		case SI_AT_IO:
 
 			object = u[i].o;
@@ -381,6 +376,8 @@ static void marshal_in_req_cleanup(struct si_arg u[], int notify)
 			put_si_object(object);
 
 			break;
+		case SI_AT_IB:
+		case SI_AT_OB:
 		case SI_AT_OO:
 		default:
 
@@ -395,27 +392,16 @@ static int marshal_in_req(struct si_arg u[], union smcinvoke_arg args[], u32 cou
 
 	FOR_ARGS(i, counts, BI) {
 		u[i].type = SI_AT_IB;
-		u[i].b.addr = kzalloc(args[i].b.size, GFP_KERNEL);
-		if (!u[i].b.addr)
-			err = -1;
-		else
-			u[i].b.size = args[i].b.size;
-
-		if (!err) {
-			void __user *u_addr = u64_to_user_ptr(args[i].b.addr);
-
-			if (copy_from_user(u[i].b.addr, u_addr, u[i].b.size))
-				err = -1;
-		}
+		u[i].flags = SI_ARG_FLAGS_UADDR;
+		u[i].b.uaddr = u64_to_user_ptr(args[i].b.addr);
+		u[i].b.size = args[i].b.size;
 	}
 
 	FOR_ARGS(i, counts, BO) {
 		u[i].type = SI_AT_OB;
-		u[i].b.addr = kzalloc(args[i].b.size, GFP_KERNEL);
-		if (!u[i].b.addr)
-			err = -1;
-		else
-			u[i].b.size = args[i].b.size;
+		u[i].flags = SI_ARG_FLAGS_UADDR;
+		u[i].b.uaddr = u64_to_user_ptr(args[i].b.addr);
+		u[i].b.size = args[i].b.size;
 	}
 
 	FOR_ARGS(i, counts, OI) {
@@ -458,18 +444,12 @@ static int marshal_out_req(union smcinvoke_arg args[], struct si_arg u[])
 	int i = 0, err = 0;
 
 	while (u[i].type == SI_AT_IB)
-		kfree(u[i++].b.addr);
+		i++;
 
 	while (u[i].type == SI_AT_OB) {
-		if (!err) {
-			void __user *u_addr = u64_to_user_ptr(args[i].b.addr);
+		args[i].b.size = u[i].b.size;
 
-			args[i].b.size = u[i].b.size;
-			if (copy_to_user(u_addr, u[i].b.addr, u[i].b.size))
-				err = -1;
-		}
-
-		kfree(u[i++].b.addr);
+		i++;
 	}
 
 	while (u[i].type == SI_AT_IO) {

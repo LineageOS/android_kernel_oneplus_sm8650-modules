@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
 /*
  * Copyright (c) 2020-2021, The Linux Foundation. All rights reserved.
- * Copyright (c) 2023-2024, Qualcomm Innovation Center, Inc. All rights reserved.
+ * Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
  */
 
 #ifndef __MSM_VIDC_DEBUG__
@@ -186,6 +186,7 @@ enum msm_vidc_bug_on_error {
 	MSM_VIDC_BUG_ON_FATAL             = BIT(0),
 	MSM_VIDC_BUG_ON_NOC               = BIT(1),
 	MSM_VIDC_BUG_ON_WD_TIMEOUT        = BIT(2),
+	MSM_VIDC_BUG_ON_DMA_MAP_FAILURE   = BIT(3),
 };
 
 struct dentry *msm_vidc_debugfs_init_drv(void);

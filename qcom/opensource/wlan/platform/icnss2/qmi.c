@@ -3785,19 +3785,7 @@ int icnss_wlfw_get_info_send_sync(struct icnss_priv *plat_priv, int type,
 		goto out;
 	}
 
-	ret = qmi_txn_wait(&txn, plat_priv->ctrl_params.qmi_timeout);
-	if (ret < 0) {
-		icnss_pr_err("Failed to wait for response of get info request, err: %d\n",
-			    ret);
-		goto out;
-	}
-
-	if (resp->resp.result != QMI_RESULT_SUCCESS_V01) {
-		icnss_pr_err("Get info request failed, result: %d, err: %d\n",
-			    resp->resp.result, resp->resp.error);
-		ret = -resp->resp.result;
-		goto out;
-	}
+	qmi_txn_cancel(&txn);
 
 	kfree(req);
 	kfree(resp);

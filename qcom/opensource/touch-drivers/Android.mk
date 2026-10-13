@@ -33,6 +33,10 @@ ifeq ($(TOUCH_DLKM_ENABLE),  true)
               LOCAL_MODULE_DDK_BUILD := true
        endif
 
+       ifeq ($(TARGET_BOARD_PLATFORM), scuba)
+              LOCAL_MODULE_DDK_BUILD := true
+       endif
+
        ifeq ($(TARGET_BOARD_PLATFORM), khaje)
               LOCAL_MODULE_DDK_BUILD := true
        endif
@@ -379,6 +383,16 @@ else ifeq ($(TARGET_BOARD_PLATFORM), pitti)
        ###########################################################
        include $(CLEAR_VARS)
        LOCAL_SRC_FILES   := $(wildcard $(LOCAL_PATH)/**/*) $(wildcard $(LOCAL_PATH)/*)
+       LOCAL_MODULE              := focaltech_tp.ko
+       LOCAL_MODULE_KBUILD_NAME  := focaltech_tp.ko
+       LOCAL_MODULE_TAGS         := optional
+       LOCAL_MODULE_PATH         := $(KERNEL_MODULES_OUT)
+       include $(DLKM_DIR)/Build_external_kernelmodule.mk
+       ###########################################################
+
+       ###########################################################
+       include $(CLEAR_VARS)
+       LOCAL_SRC_FILES   := $(wildcard $(LOCAL_PATH)/**/*) $(wildcard $(LOCAL_PATH)/*)
        LOCAL_MODULE              := goodix_ts.ko
        LOCAL_MODULE_KBUILD_NAME  := goodix_ts.ko
        LOCAL_MODULE_TAGS         := optional
@@ -434,6 +448,30 @@ else ifeq ($(TARGET_BOARD_PLATFORM), volcano)
        ###########################################################
 
 else ifeq ($(TARGET_BOARD_PLATFORM), khaje)
+
+       ###########################################################
+       include $(CLEAR_VARS)
+       LOCAL_SRC_FILES   := $(wildcard $(LOCAL_PATH)/**/*) $(wildcard $(LOCAL_PATH)/*)
+       LOCAL_MODULE              := focaltech_fts.ko
+       LOCAL_MODULE_KBUILD_NAME  := focaltech_fts.ko
+       LOCAL_MODULE_TAGS         := optional
+       #LOCAL_MODULE_DEBUG_ENABLE := true
+       LOCAL_MODULE_PATH         := $(KERNEL_MODULES_OUT)
+       include $(DLKM_DIR)/Build_external_kernelmodule.mk
+       ###########################################################
+
+       ###########################################################
+       include $(CLEAR_VARS)
+       LOCAL_SRC_FILES   := $(wildcard $(LOCAL_PATH)/**/*) $(wildcard $(LOCAL_PATH)/*)
+       LOCAL_MODULE              := qts.ko
+       LOCAL_MODULE_KBUILD_NAME  := qts.ko
+       LOCAL_MODULE_TAGS         := optional
+       #LOCAL_MODULE_DEBUG_ENABLE := true
+       LOCAL_MODULE_PATH         := $(KERNEL_MODULES_OUT)
+       include $(DLKM_DIR)/Build_external_kernelmodule.mk
+       ###########################################################
+
+else ifeq ($(TARGET_BOARD_PLATFORM), scuba)
 
        ###########################################################
        include $(CLEAR_VARS)

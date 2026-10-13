@@ -8,6 +8,7 @@
 
 #include <linux/interrupt.h>
 #include <linux/device.h>
+#include "cnss_utils.h"
 
 #define ICNSS_MAX_IRQ_REGISTRATIONS    12
 #define IWCN_MAX_IRQ_REGISTRATIONS    32
@@ -71,6 +72,9 @@ struct icnss_driver_ops {
 	int (*uevent)(struct device *dev, struct icnss_uevent_data *uevent);
 	int (*idle_shutdown)(struct device *dev);
 	int (*idle_restart)(struct device *dev);
+	int (*collect_driver_dump)(struct device *dev,
+				   struct cnss_ssr_driver_dump_entry *input_array,
+				   size_t *num_entries_loaded);
 	int (*set_therm_cdev_state)(struct device *dev,
 				    unsigned long thermal_state,
 				    int tcdev_id);

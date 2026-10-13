@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
 /*
- * Copyright (c) 2022 Qualcomm Innovation Center, Inc. All rights reserved.
+ * Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
  */
 #ifndef SMMU_PROXY_MSGQ_H
 #define SMMU_PROXY_MSGQ_H
@@ -28,6 +28,8 @@ enum smmu_proxy_msg_type {
 	SMMU_PROXY_UNMAP,
 	SMMU_PROXY_UNMAP_RESP,
 	SMMU_PROXY_ERR_RESP,
+	SMMU_PROXY_SWITCH_SID,
+	SMMU_PROXY_SWITCH_SID_RESP,
 	SMMU_PROXY_MSG_MAX,
 };
 
@@ -104,4 +106,26 @@ struct smmu_proxy_unmap_resp {
 	struct smmu_proxy_resp_hdr hdr;
 } __packed;
 
+/**
+ * struct smmu_proxy_switch_req: The message format for an SID switch request from
+ * another VM.
+ * @hdr: Message header
+ * @cb_id: The context bank id to-be switched.
+ * @switch_dir: One of the values in enum sid_switch_direction.
+ *              SID_ACQUIRE or SID_RELEASE.
+ */
+struct smmu_proxy_switch_sid_req {
+	struct smmu_proxy_msg_hdr hdr;
+	u32 cb_id;
+	u32 switch_dir;
+} __packed;
+
+/**
+ * struct smmu_proxy_switch_resp: The message format for an SID switch
+ * request response.
+ * @hdr: Response header
+ */
+struct smmu_proxy_switch_sid_resp {
+	struct smmu_proxy_resp_hdr hdr;
+} __packed;
 #endif /* SMMU_PROXY_MSGQ_H */

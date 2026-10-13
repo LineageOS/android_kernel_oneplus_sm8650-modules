@@ -638,6 +638,7 @@ struct cnss_plat_data {
 	u8 use_pm_domain;
 	u8 use_nv_mac;
 	u8 set_wlaon_pwr_ctrl;
+	u8 wlaon_pwr_ctrl_otp_supported;
 	struct cnss_tcs_info tcs_info;
 	bool fw_pcie_gen_switch;
 	bool fw_aux_uc_support;
@@ -682,6 +683,7 @@ struct cnss_plat_data {
 	bool is_fw_managed_pwr;
 	struct device **pd_devs;
 	int pd_count;
+	char bdfname_dt[MAX_FIRMWARE_NAME_LEN];
 	struct cnss_xo_trim_config xo_trim_conf;
 };
 

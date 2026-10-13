@@ -2794,13 +2794,43 @@ static void cnss_pci_deinit_mhi(struct cnss_pci_data *pci_priv)
 	cnss_pci_set_mhi_state(pci_priv, CNSS_MHI_DEINIT);
 }
 
+static void cnss_pci_get_wlaon_pwr_ctrl_info(struct cnss_pci_data *pci_priv)
+{
+	struct cnss_plat_data *plat_priv = pci_priv->plat_priv;
+	struct device *dev = &plat_priv->plat_dev->dev;
+
+	/*
+	 * As wlaon power ctrl feature is supported only for specific chip,
+	 * we need firstly read the set-wlaon-pwr-ctrl flag from parent node
+	 * to align old design, then re-update this flag from child node.
+	 * And only when wlaon power ctrl feature is enabled, read otp flag
+	 * from child node for specific chip.
+	 **/
+	plat_priv->set_wlaon_pwr_ctrl =
+		of_property_read_bool(dev->of_node, "qcom,set-wlaon-pwr-ctrl");
+
+	if (!plat_priv->set_wlaon_pwr_ctrl && plat_priv->dev_node)
+		plat_priv->set_wlaon_pwr_ctrl =
+			of_property_read_bool(plat_priv->dev_node,
+					      "qcom,set-wlaon-pwr-ctrl");
+
+	if (plat_priv->set_wlaon_pwr_ctrl && plat_priv->dev_node)
+		plat_priv->wlaon_pwr_ctrl_otp_supported =
+			of_property_read_bool(plat_priv->dev_node,
+					"qcom,wlaon-pwr-ctrl-otp-supported");
+
+	cnss_pr_dbg("set_wlaon_pwr_ctrl is %d, otp in cmn aon is %d\n",
+		    plat_priv->set_wlaon_pwr_ctrl,
+		    plat_priv->wlaon_pwr_ctrl_otp_supported);
+}
+
 static void cnss_pci_set_wlaon_pwr_ctrl(struct cnss_pci_data *pci_priv,
 					bool set_vddd4blow, bool set_shutdown,
 					bool do_force_wake)
 {
 	struct cnss_plat_data *plat_priv = pci_priv->plat_priv;
 	int ret;
-	u32 val;
+	u32 val, pwr_ctrl_value;
 
 	if (!plat_priv->set_wlaon_pwr_ctrl)
 		return;
@@ -2823,10 +2853,14 @@ static void cnss_pci_set_wlaon_pwr_ctrl(struct cnss_pci_data *pci_priv,
 	cnss_pr_dbg("Read register offset 0x%x, val = 0x%x\n",
 		    WLAON_QFPROM_PWR_CTRL_REG, val);
 
+	pwr_ctrl_value = QFPROM_PWR_CTRL_VDD4BLOW_SW_EN_MASK;
+	if (plat_priv->wlaon_pwr_ctrl_otp_supported)
+		pwr_ctrl_value |= QFPROM_PWR_CTRL_VDD4BLOW_SW_EN_WL_MASK;
+
 	if (set_vddd4blow)
-		val |= QFPROM_PWR_CTRL_VDD4BLOW_SW_EN_MASK;
+		val |= pwr_ctrl_value;
 	else
-		val &= ~QFPROM_PWR_CTRL_VDD4BLOW_SW_EN_MASK;
+		val &= ~pwr_ctrl_value;
 
 	if (set_shutdown)
 		val |= QFPROM_PWR_CTRL_SHUTDOWN_EN_MASK;
@@ -7979,6 +8013,7 @@ static int cnss_pci_probe(struct pci_dev *pci_dev,
 		goto reset_ctx;
 	}
 
+	cnss_pci_get_wlaon_pwr_ctrl_info(pci_priv);
 	cnss_get_bwscal_info(plat_priv);
 	cnss_pr_dbg("no_bwscale: %d\n", plat_priv->no_bwscale);
 	cnss_pci_restore_rc_speed(pci_priv);

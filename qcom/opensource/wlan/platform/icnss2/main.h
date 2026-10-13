@@ -42,6 +42,8 @@
 #define WLAN_RF_SLATE 0
 #define WLAN_RF_APACHE 1
 #define MSI_USERS                       2
+#define ICNSS_RAMDUMP_MAGIC		0x574C414E //'WLAN' in ASCII- to identify valid ICNSS ramdump files
+#define ICNSS_RAMDUMP_VERSION		0 //Initial format with basic metadata and dump entries
 
 extern uint64_t dynamic_feature_mask;
 
@@ -425,6 +427,20 @@ struct icnss_ramdump_info {
 	int minor;
 	char name[32];
 	struct device *dev;
+};
+
+struct icnss_dump_entry {
+	int type;
+	u32 entry_start;
+	u32 entry_num;
+};
+
+struct cnss_host_dump_meta_info {
+	u32 magic;
+	u32 version;
+	u32 chipset;
+	u32 total_entries;
+	struct icnss_dump_entry entry[CNSS_HOST_DUMP_TYPE_MAX];
 };
 
 struct icnss_priv {
