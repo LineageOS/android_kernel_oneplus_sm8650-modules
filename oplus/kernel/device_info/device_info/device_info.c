@@ -13,7 +13,7 @@
 #include <linux/fs.h>
 #include <linux/of_gpio.h>
 #include <linux/platform_device.h>
-#include "../../../../fs/proc/internal.h"
+#include <fs/proc/internal.h>
 #include <linux/gpio.h>
 #include <asm/uaccess.h>
 #include <linux/delay.h>
