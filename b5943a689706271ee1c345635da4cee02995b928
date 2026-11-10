@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "c851dda8_cb0a3f65",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 32811
+      },
+      "writtenOn": "2026-11-10T15:06:21Z",
+      "side": 1,
+      "message": "fixes:\n\n```\n  [drm:sde_hw_rc_check_mask:372] [sde error]invalid number of mixers:4\n  [drm:_check_rc_mask_feature [msm_drm]] *ERROR* failed to validate rc mask -22\n  [drm:sde_cp_crtc_check_properties [msm_drm]] *ERROR* failed check on cp properties\n  [drm:_sde_crtc_atomic_check:6428] [sde error]crtc205 failed cp properties check -22\n```",
+      "revId": "b5943a689706271ee1c345635da4cee02995b928",
+      "serverId": "1ec6b3db-b2c1-4fa4-84a2-4c7efe89ba71"
+    }
+  ]
+}
