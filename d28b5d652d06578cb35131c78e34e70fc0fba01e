@@ -16,6 +16,23 @@
       "message": "fixes:\n\n```\n[drm:_sde_crtc_check_plane_layout:6318] [sde error]invalid horizontal destination\n[drm:_sde_crtc_check_plane_layout:6322] [sde error]x:2250 w:750 hdisp:0 layout:2\n[drm:_sde_crtc_atomic_check:6398] [sde error]crtc205 failed plane layout check -7\n```",
       "revId": "d28b5d652d06578cb35131c78e34e70fc0fba01e",
       "serverId": "1ec6b3db-b2c1-4fa4-84a2-4c7efe89ba71"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "2e937a2a_3d9e2570",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 32811
+      },
+      "writtenOn": "2026-11-11T02:59:10Z",
+      "side": 1,
+      "message": "Please test your devices with this chain",
+      "revId": "d28b5d652d06578cb35131c78e34e70fc0fba01e",
+      "serverId": "1ec6b3db-b2c1-4fa4-84a2-4c7efe89ba71"
     }
   ]
 }
