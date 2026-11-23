@@ -77,6 +77,7 @@ static struct extcon_dev_data *g_hall_dev;
 static int last_d0;
 static int last_d1;
 static int last_position = -1;
+static int reported_position = -1;
 static int last_interf = -1;
 static int interf_count;
 static int time = 1;
@@ -1467,6 +1468,7 @@ static void report_key_value(struct extcon_dev_data *chip)
 		input_sync(chip->input_dev);
 		input_report_key(chip->input_dev, KEY_F3, 0);
 		input_sync(chip->input_dev);
+		reported_position = chip->position;
 		TRI_KEY_LOG("tri_key: report down key successful!\n");
 	} else if (chip->position == UP_STATE) {
 		chip->state = 1;
@@ -1475,6 +1477,7 @@ static void report_key_value(struct extcon_dev_data *chip)
 		input_sync(chip->input_dev);
 		input_report_key(chip->input_dev, KEY_F3, 0);
 		input_sync(chip->input_dev);
+		reported_position = chip->position;
 	} else if (chip->position == MID_STATE) {
 		chip->state = 2;
 		TRI_KEY_LOG("tri_key: report mid key successful!\n");
@@ -1482,6 +1485,7 @@ static void report_key_value(struct extcon_dev_data *chip)
 		input_sync(chip->input_dev);
 		input_report_key(chip->input_dev, KEY_F3, 0);
 		input_sync(chip->input_dev);
+		reported_position = chip->position;
 	} else
 		TRI_KEY_LOG("no report\n");
 }
@@ -1614,7 +1618,11 @@ int threeaxis_hall_irq_handler(unsigned int id)
 	err = threeaxis_get_data(g_the_chip);
 	threeaxis_judge_interference(g_the_chip);
 	err = threeaxis_get_position(g_the_chip);
-	report_key_value(g_the_chip);
+	/* Interference re-checks may land on the position userspace already has */
+	if (g_the_chip->position == reported_position)
+		TRI_KEY_LOG("no report\n");
+	else
+		report_key_value(g_the_chip);
 	msleep(10);
 
 	if (g_the_chip->health_monitor_support) {
